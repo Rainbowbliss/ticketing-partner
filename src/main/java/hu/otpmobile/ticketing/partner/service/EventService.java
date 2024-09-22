@@ -3,8 +3,8 @@ package hu.otpmobile.ticketing.partner.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.otpmobile.ticketing.partner.web.dto.EventDetailsResponse;
 import hu.otpmobile.ticketing.partner.web.dto.EventsResponse;
-import hu.otpmobile.ticketing.partner.web.dto.ReservationResponse;
 import hu.otpmobile.ticketing.partner.web.dto.ReservationRequest;
+import hu.otpmobile.ticketing.partner.web.dto.ReservationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.io.File;
@@ -78,10 +78,7 @@ public class EventService {
       throw new RuntimeException(); // TODO saját exception hibakóddal
     }
 
-    var reservationId = random.nextLong();
-    if (reservationId < 0) {
-      reservationId *= -1;
-    }
+    var reservationId = Math.abs(random.nextLong());
 
     return new ReservationResponse(reservationId, true);
   }

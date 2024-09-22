@@ -1,10 +1,10 @@
 package hu.otpmobile.ticketing.partner.web.rest;
 
+import hu.otpmobile.ticketing.partner.service.EventService;
 import hu.otpmobile.ticketing.partner.web.dto.EventDetailsResponse;
 import hu.otpmobile.ticketing.partner.web.dto.EventsResponse;
-import hu.otpmobile.ticketing.partner.web.dto.ReservationResponse;
-import hu.otpmobile.ticketing.partner.service.EventService;
 import hu.otpmobile.ticketing.partner.web.dto.ReservationRequest;
+import hu.otpmobile.ticketing.partner.web.dto.ReservationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +32,8 @@ public class EventResource {
   }
 
   @PostMapping("/reserve")
-  private ReservationResponse reserveSeat(@RequestBody @Valid ReservationRequest reservationRequest) {
+  private ReservationResponse reserveSeat(
+      @RequestBody @Valid ReservationRequest reservationRequest) {
     return eventService.reserveSeat(reservationRequest);
   }
 
