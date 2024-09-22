@@ -5,6 +5,8 @@ import hu.otpmobile.ticketing.partner.web.dto.EventDetailsResponse;
 import hu.otpmobile.ticketing.partner.web.dto.EventsResponse;
 import hu.otpmobile.ticketing.partner.web.dto.ReservationRequest;
 import hu.otpmobile.ticketing.partner.web.dto.ReservationResponse;
+import hu.otpmobile.ticketing.partner.web.error.ErrorType;
+import hu.otpmobile.ticketing.partner.web.error.exception.TicketingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.io.File;
@@ -27,7 +29,7 @@ public class EventService {
       return mapper.readValue(file, EventsResponse.class);
     } catch (IOException e) {
       log.error("Hiba a getEvents.json fájl beolvasása közben!", e);
-      throw new RuntimeException();
+      throw new TicketingException(ErrorType.READ_FILE_ERROR);
     }
   }
 
@@ -35,14 +37,14 @@ public class EventService {
     try {
       var resource = this.getClass().getClassLoader().getResource("getEvent" + id + ".json");
       if (resource == null) {
-        log.error("Ilyen esemény nem létezik");
-        throw new RuntimeException(); // TODO saját exception hibakóddal
+        log.error("A következő id-val nem létezik esemény: {}", id);
+        throw new TicketingException(ErrorType.EVENT_DOES_NOT_EXISTS);
       }
       File file = new File(resource.getFile());
       return mapper.readValue(file, EventDetailsResponse.class);
     } catch (IOException e) {
       log.error("Hiba a getEvents.json fájl beolvasása közben!", e);
-      throw new RuntimeException();
+      throw new TicketingException(ErrorType.READ_FILE_ERROR);
     }
   }
 
@@ -51,14 +53,14 @@ public class EventService {
     var eventOptional = events.getData().stream()
         .filter(event -> event.getEventId().equals(reservationRequest.getEventId())).findFirst();
     if (eventOptional.isEmpty()) {
-      log.error("Nem létezik ilyen esemény!");
-      throw new RuntimeException(); // TODO saját exception hibakóddal
+      log.error("A következő id-val nem létezik esemény: {}", reservationRequest.getEventId());
+      throw new TicketingException(ErrorType.EVENT_DOES_NOT_EXISTS);
     }
     var event = eventOptional.get();
 
     if (event.getStartTimeStamp().isBefore(LocalDateTime.now())) {
       log.error("Olyan eseményre ami már elkezdődött nem lehet jegyet eladni!");
-      throw new RuntimeException(); // TODO saját exception hibakóddal
+      throw new TicketingException(ErrorType.EVENT_EXPIRED);
     }
 
     var eventDetails = getEvent(reservationRequest.getEventId());
@@ -67,15 +69,15 @@ public class EventService {
         .filter(seat -> seat.getId().equals(reservationRequest.getSeatId())).findFirst();
 
     if (seatOptional.isEmpty()) {
-      log.error("Nem létező ülés!");
-      throw new RuntimeException(); // TODO saját exception hibakóddal
+      log.error(" Nem létezik ilyen szék!");
+      throw new TicketingException(ErrorType.SEAT_DOES_NOT_EXISTS);
     }
 
     var seat = seatOptional.get();
 
     if (seat.isReserved()) {
-      log.error("Ez az ülés már foglalt!");
-      throw new RuntimeException(); // TODO saját exception hibakóddal
+      log.error("Már lefoglalt székre nem lehet jegyet eladni!");
+      throw new TicketingException(ErrorType.RESERVED_SEAT);
     }
 
     var reservationId = Math.abs(random.nextLong());
